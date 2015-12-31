@@ -1,6 +1,6 @@
 package com.ibm.rtc.rtc.ui;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -23,8 +23,8 @@ import tr.xip.errorview.ErrorView;
  * Created by Jack on 2015/12/17.
  */
 public abstract class LoadingListFragment<Adapter extends RecyclerArrayAdapter> extends Fragment
-    implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener, RecyclerArrayAdapter.RecyclerAdapterContentListener,
-    ErrorView.RetryListener {
+        implements SwipeRefreshLayout.OnRefreshListener, RecyclerArrayAdapter.RecyclerAdapterContentListener,
+        ErrorView.RetryListener {
 
     protected RecyclerView recyclerView;
     protected boolean fromRetry = false;
@@ -36,11 +36,6 @@ public abstract class LoadingListFragment<Adapter extends RecyclerArrayAdapter> 
     private boolean fromPaginated;
     private Integer page;
     private List<ItemDecoration> listDecorators;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
 
     @Nullable
@@ -84,8 +79,9 @@ public abstract class LoadingListFragment<Adapter extends RecyclerArrayAdapter> 
             getAdapter().clear();
             setAdapter(null);
         }
-        executeRequest();
 
+        //为了加载Adapter并创建列表
+        executeRequest();
     }
 
     protected RecyclerView.LayoutManager getLayoutManager() {

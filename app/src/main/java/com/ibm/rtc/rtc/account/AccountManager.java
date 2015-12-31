@@ -3,12 +3,8 @@ package com.ibm.rtc.rtc.account;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
-
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +12,7 @@ import java.util.List;
 
 /**
  * Created by v-wajie on 2015/12/11.
+ *
  */
 public class AccountManager {
 

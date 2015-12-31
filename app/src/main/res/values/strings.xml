@@ -7,9 +7,14 @@
     <string name="drawer_menu_sign_out">SignOut</string>
     <string name="title_activity_login">Sign in</string>
 
-    <!-- Strings related to login -->
+    <!-- Strings related to login fragment -->
     <string name="prompt_username">Username</string>
     <string name="prompt_password">Password</string>
+    <string name="prompt_host">Server Host</string>
+    <string name="prompt_port">Port</string>
+    <string name="port_range">Port must be between 0 and 65535</string>
+    <string name="default_host">10.205.18.171</string>
+    <string name="default_port">4567</string>
     <string name="action_sign_in">Sign in</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
@@ -23,7 +28,8 @@
     <string name="error_server_error">Unexpected server error, please try again</string>
     <string name="error_login_network">Can not connect to Server</string>
 
-    <!-- Strings related to login -->
 
+    <!-- Workitem fragment -->
+    <string name="workitem_title">Workitem Title</string>
 
 </resources>

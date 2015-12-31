@@ -1,11 +1,13 @@
 package com.ibm.rtc.rtc.ui;
 
 import android.app.Activity;
+import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -34,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements AccountHeader.OnA
     private Toolbar mToolbar;
     private Drawer mDrawer;
     private View mContentView;
+    private WorkitemsListFragment mWorkitemsListFragment;
+    private Fragment mLastUsedFragment;
 
     public static void startActivity(Activity context) {
         Intent intent = new Intent(context, MainActivity.class);
@@ -146,7 +150,10 @@ public class MainActivity extends AppCompatActivity implements AccountHeader.OnA
     }
 
     public boolean OnWorkitemsSelected() {
-        Snackbar.make(mContentView, "WorkItems clicked", Snackbar.LENGTH_SHORT).show();
+        if (mWorkitemsListFragment == null) {
+            mWorkitemsListFragment = new WorkitemsListFragment();
+        }
+        setFragment(mWorkitemsListFragment, false);
         return true;
     }
 
@@ -158,5 +165,23 @@ public class MainActivity extends AppCompatActivity implements AccountHeader.OnA
     public boolean OnSettingsSelected() {
         Snackbar.make(mContentView, "Settings clicked", Snackbar.LENGTH_SHORT).show();
         return true;
+    }
+
+    private void setFragment(Fragment fragment, boolean addToBackStack) {
+        try {
+            if (fragment != null && getSupportFragmentManager() != null) {
+                this.mLastUsedFragment = fragment;
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                if (transaction != null) {
+                    transaction.replace(R.id.content, fragment);
+                    if (addToBackStack) {
+                        transaction.addToBackStack(null);
+                    }
+                    transaction.commit();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

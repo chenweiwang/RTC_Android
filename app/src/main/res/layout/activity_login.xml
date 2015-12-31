@@ -66,6 +66,36 @@
 
             </android.support.design.widget.TextInputLayout>
 
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/host"
+                    android:hint="@string/prompt_host"
+                    android:imeActionId="@+id/login"
+                    android:inputType="textUri"
+                    android:singleLine="true"
+                    android:maxLines="1" />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/port"
+                    android:imeActionId="@+id/login"
+                    android:inputType="number"
+                    android:singleLine="true"
+                    android:maxLines="1" />
+            </android.support.design.widget.TextInputLayout>
+
             <Button
                 android:id="@+id/sign_in_button"
                 style="?android:textAppearanceSmall"

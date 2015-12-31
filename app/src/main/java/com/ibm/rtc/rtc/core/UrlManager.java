@@ -27,6 +27,7 @@ public class UrlManager {
     public UrlManager(Context ctx) {
         this.mCtx = ctx.getApplicationContext();
         mProtocol = DEFAULT_PROTOCOL;
+        getLoginUrl();
     }
 
     private SharedPreferences getPrefs() {

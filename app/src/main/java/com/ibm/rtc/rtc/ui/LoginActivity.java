@@ -4,13 +4,10 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-
-import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -21,15 +18,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.google.gson.JsonObject;
-
 import com.ibm.rtc.rtc.R;
 import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.account.AccountManager;
@@ -38,9 +31,6 @@ import com.ibm.rtc.rtc.core.VolleyQueue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A login screen that offers login via username/password.
@@ -52,6 +42,8 @@ public class LoginActivity extends AppCompatActivity {
     // UI references.
     private EditText mUsernameView;
     private EditText mPasswordView;
+    private EditText mHostView;
+    private EditText mPortView;
     private View mProgressView;
     private View mLoginFormView;
     private boolean isLogining =false;
@@ -66,6 +58,8 @@ public class LoginActivity extends AppCompatActivity {
         mRequestQueue = VolleyQueue.getInstance(this).getRequestQueue();
 
         // Set up the login form.
+        mHostView = (EditText) findViewById(R.id.host);
+        mPortView = (EditText) findViewById(R.id.port);
         mUsernameView = (EditText) findViewById(R.id.username);
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -93,6 +87,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
 
+
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
@@ -108,10 +103,14 @@ public class LoginActivity extends AppCompatActivity {
         // Reset errors.
         mUsernameView.setError(null);
         mPasswordView.setError(null);
+        mHostView.setError(null);
+        mPortView.setError(null);
 
         // Store values at the time of the login attempt.
         final String username = mUsernameView.getText().toString();
         final String password = mPasswordView.getText().toString();
+        final String host = mHostView.getText().toString();
+        final Integer port = Integer.parseInt(mPortView.getText().toString());
 
         boolean cancel = false;
         View focusView = null;
@@ -123,10 +122,24 @@ public class LoginActivity extends AppCompatActivity {
             cancel = true;
         }
 
-        // Check for a valid username address.
+        // Check for a valid username.
         if (TextUtils.isEmpty(username)) {
             mUsernameView.setError(getString(R.string.error_field_required));
             focusView = mUsernameView;
+            cancel = true;
+        }
+
+        //Check for a valid uri address
+        if (TextUtils.isEmpty(host)) {
+            mHostView.setError(getString(R.string.error_field_required));
+            focusView = mHostView;
+            cancel = true;
+        }
+
+        //Check for a valid port
+        if (port < 0 && port > 65535) {
+            mPortView.setError(getString(R.string.port_range));
+            focusView = mPortView;
             cancel = true;
         }
 
@@ -139,7 +152,11 @@ public class LoginActivity extends AppCompatActivity {
             // perform the user login attempt.
             showProgress(true);
 
-            String loginUrl = new UrlManager(this).getLoginUrl();
+            UrlManager urlManager = new UrlManager(this);
+            urlManager.setHost(host);
+            urlManager.setPort(port);
+            String loginUrl = urlManager.getLoginUrl();
+
             final String AUTHENTICATE_ATTR = "authenticated";
             JSONObject body = new JSONObject();
             try {
@@ -235,10 +252,16 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        mHostView.setText(getText(R.string.default_host));
+        mPortView.setText(getText(R.string.default_port));
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         mRequestQueue.cancelAll(TAG);
-        mRequestQueue = null;
     }
 }
 
