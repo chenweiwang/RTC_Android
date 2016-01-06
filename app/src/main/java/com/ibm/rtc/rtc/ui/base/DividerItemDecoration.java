@@ -1,4 +1,4 @@
-package com.ibm.rtc.rtc.ui;
+package com.ibm.rtc.rtc.ui.base;
 
 import android.content.Context;
 import android.content.res.TypedArray;

@@ -1,8 +1,8 @@
-package com.ibm.rtc.rtc.ui;
+package com.ibm.rtc.rtc.ui.base;
 
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -75,12 +75,11 @@ public abstract class LoadingListFragment<Adapter extends RecyclerArrayAdapter> 
             swipe.setOnRefreshListener(this);
         }
 
+        //为了加载Adapter并创建列表
         if (getAdapter() != null) {
             getAdapter().clear();
             setAdapter(null);
         }
-
-        //为了加载Adapter并创建列表
         executeRequest();
     }
 
@@ -189,6 +188,42 @@ public abstract class LoadingListFragment<Adapter extends RecyclerArrayAdapter> 
             loadingView.setVisibility(View.GONE);
         }
     }
+
+    public void setEmpty() {
+        stopRefresh();
+        if (getActivity() != null) {
+            if (errorView != null) {
+                errorView.setVisibility(View.VISIBLE);
+                errorView.setTitle(getNoDataText());
+                errorView.showRetryButton(true);
+                errorView.setOnRetryListener(this);
+            }
+        }
+
+        if (recyclerView != null) {
+            recyclerView.setLayoutManager(getLayoutManager());
+            recyclerView.setItemAnimator(getItemAnimator());
+            if (getItemDecoration() != null) {
+                recyclerView.addItemDecoration(getItemDecoration());
+            }
+        }
+    }
+
+    public void setEmpty(boolean withError, int statusCode) {
+        if (getActivity() != null) {
+            if (errorView != null) {
+                errorView.setVisibility(View.VISIBLE);
+                errorView.setError(statusCode);
+                errorView.showRetryButton(withError);
+                if (withError) {
+                    errorView.setOnRetryListener(this);
+                }
+            }
+        }
+    }
+
+
+    protected abstract int getNoDataText();
 
 }
 

@@ -1,50 +1,87 @@
 package com.ibm.rtc.rtc.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 /**
  * Created by Jack on 2015/12/17.
  */
-public class Workitem {
+public class Workitem implements Parcelable {
 
+    public static final String TAG = "Workitem";
+    private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
     private String projectUuid;
     private int id;
+    private String description;
     private String type;
     private String filedAgainst;
     private String ownedBy;
     private String createdBy;
     private Date createdTime;
     private Date lastModifiedTime;
+    private Date dueDate;
     private String title;
     private String priority;
     private String severity;
     private String commentsUrl;
     private String subscribersUrl;
     private String plannedFor;
-    private Date dueDate;
 
-    public static Collection<Workitem> fromJSONArray(JSONArray jsonArray) {
+    public Workitem() {}
+
+    public static List<Workitem> fromJSONArray(JSONArray jsonArray) throws JSONException, ParseException {
         List<Workitem> workitemList = new ArrayList<>();
-        try {
-            //workitemList = JSONArray
-            for (int i = 0; i < jsonArray.length(); ++i) {
-                JSONObject object = jsonArray.getJSONObject(i);
-                Workitem workitem = new Workitem();
-
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
+        //workitemList => JSONArray
+        for (int i = 0; i < jsonArray.length(); ++i) {
+            JSONObject object = jsonArray.getJSONObject(i);
+            workitemList.add(fromJSON(object));
         }
-        return null;
+        return workitemList;
     }
+
+    public static Workitem fromJSON(JSONObject object) throws JSONException, ParseException {
+        Workitem workitem = new Workitem();
+        workitem.setId(object.getInt("id"));
+        workitem.setProjectUuid(object.getString("projectUuid"));
+        workitem.setSubscribersUrl(object.getString("subscribersUrl"));
+        workitem.setDescription(object.getString("description"));
+        workitem.setTitle(object.getString("title"));
+        workitem.setSeverity(object.getJSONObject("severity").getString("title"));
+        workitem.setPriority(object.getJSONObject("priority").getString("title"));
+        workitem.setCreatedBy(object.getJSONObject("createdBy").getString("name"));
+        workitem.setOwnedBy(object.getJSONObject("ownedBy").getString("name"));
+        workitem.setFiledAgainst(object.getJSONObject("filedAgainst").getString("title"));
+        workitem.setType(object.getJSONObject("type").getString("title"));
+
+        if (!object.getString("dueDate").equals("null")) {
+            workitem.setDueDate(dateFormat.parse(object.getString("dueDate")));
+        } else {
+            workitem.setDueDate(null);
+        }
+        if (!object.getString("createdTime").equals("null")) {
+            workitem.setCreatedTime(dateFormat.parse(object.getString("createdTime")));
+        } else {
+            workitem.setCreatedTime(null);
+        }
+        if (!object.getString("lastModifiedTime").equals("null")) {
+            workitem.setLastModifiedTime(dateFormat.parse(object.getString("lastModifiedTime")));
+        } else {
+            workitem.setLastModifiedTime(null);
+        }
+        return workitem;
+    }
+
 
     public String getProjectUuid() {
         return projectUuid;
@@ -165,4 +202,73 @@ public class Workitem {
     public void setCommentsUrl(String commentsUrl) {
         this.commentsUrl = commentsUrl;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(projectUuid);
+        dest.writeInt(id);
+        dest.writeString(description);
+        dest.writeString(type);
+        dest.writeString(filedAgainst);
+        dest.writeString(ownedBy);
+        dest.writeString(createdBy);
+        dest.writeLong(createdTime == null ? -1 : createdTime.getTime());
+        dest.writeLong(lastModifiedTime == null ? -1 : lastModifiedTime.getTime());
+        dest.writeLong(dueDate == null ? -1 : dueDate.getTime());
+        dest.writeString(title);
+        dest.writeString(priority);
+        dest.writeString(severity);
+        dest.writeString(commentsUrl);
+        dest.writeString(subscribersUrl);
+        dest.writeString(plannedFor);
+    }
+
+    public static final Parcelable.Creator<Workitem> CREATOR = new Parcelable.Creator<Workitem>() {
+
+        @Override
+        public Workitem createFromParcel(Parcel source) {
+            return new Workitem(source);
+        }
+
+        @Override
+        public Workitem[] newArray(int size) {
+            return new Workitem[size];
+        }
+    };
+
+    private Workitem(Parcel in) {
+        projectUuid = in.readString();
+        id = in.readInt();
+        description = in.readString();
+        type = in.readString();
+        filedAgainst = in.readString();
+        ownedBy = in.readString();
+        createdBy = in.readString();
+
+        Long peek;
+        createdTime = (peek = in.readLong()) >= 0 ? new Date(peek) : null;
+        lastModifiedTime = (peek = in.readLong()) >= 0 ? new Date(peek) : null;
+        dueDate = (peek = in.readLong()) >= 0 ? new Date(peek) : null;
+
+        title = in.readString();
+        priority = in.readString();
+        severity = in.readString();
+        commentsUrl = in.readString();
+        subscribersUrl = in.readString();
+        plannedFor = in.readString();
+    }
+
 }

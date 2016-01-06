@@ -29,7 +29,21 @@
     <string name="error_login_network">Can not connect to Server</string>
 
 
-    <!-- Workitem fragment -->
+    <!-- Workitem list fragment -->
     <string name="workitem_title">Workitem Title</string>
+    <string name="workitem_refresh_error">Refresh Workitem List failed</string>
+    <string name="no_workitems">No workitems</string>
+    <string name="workitem_list_title">Workitems</string>
 
+
+    <!-- Project list fragment -->
+    <string name="project_list_title">Projects</string>
+    <string name="no_projects">No projects</string>
+    <string name="project_refresh_error">Refresh project List failed</string>
+
+    <!-- Workitem detail fragment -->
+    <string name="workitem_detail_title">Detail</string>
+
+    <!-- Workitem comments fragment -->
+    <string name="workitem_comment_title">Comments</string>
 </resources>

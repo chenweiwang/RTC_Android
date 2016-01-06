@@ -3,6 +3,7 @@ package com.ibm.rtc.rtc.adapter;
 import android.content.Context;
 import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,15 +11,15 @@ import android.widget.TextView;
 
 import com.ibm.rtc.rtc.R;
 import com.ibm.rtc.rtc.model.Workitem;
+import com.ibm.rtc.rtc.ui.WorkitemActivity;
 
 /**
  * Created by Jack on 2015/12/17.
  */
-public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdapter.ViewHolder>{
+public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdapter.ViewHolder> {
 
     private boolean showOwnerName = true;
     private final Resources resources;
-    private WorkitemAdapterListener workitemAdapterListener;
 
     public WorkitemAdapter(Context context, LayoutInflater inflater) {
         super(inflater);
@@ -36,16 +37,12 @@ public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdap
         }
 
         //TODO 为workitem添加其他字段。
-        holder.textDescription.setVisibility(View.INVISIBLE);
+        holder.textDescription.setText(Html.fromHtml(item.getDescription()));
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new ViewHolder(getInflater().inflate(R.layout.row_workitem, parent, false));
-    }
-
-    public interface WorkitemAdapterListener {
-        void onItem(Workitem workitem);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -63,7 +60,11 @@ public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdap
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    Workitem workitem = getItem(getAdapterPosition());
+                    if (workitem != null) {
+                        v.getContext().startActivity(
+                                WorkitemActivity.createLauncherIntent(v.getContext(), workitem));
+                    }
                 }
             });
         }

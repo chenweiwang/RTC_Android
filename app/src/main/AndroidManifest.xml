@@ -21,6 +21,7 @@
         <activity
             android:name=".ui.LoginActivity"
             android:label="@string/title_activity_login" />
+        <activity android:name=".ui.WorkitemActivity" />
 
     </application>
 

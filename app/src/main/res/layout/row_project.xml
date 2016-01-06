@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="?selectableItemBackground">
 
     <RelativeLayout
@@ -19,9 +19,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="Workitem title"
+            tools:text="Project name"
             android:id="@+id/title"
-            style="@style/TextAppearance.AppCompat.Medium"
+            style="@style/TextAppearance.AppCompat.Headline"
             android:textColor="?colorPrimaryDark"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
@@ -32,10 +32,10 @@
 
         <TextView
             style="@style/TextAppearance.AppCompat.Body1"
-            tools:text="Owner name"
+            tools:text="UUID"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/owner"
+            android:id="@+id/uuid"
             android:maxLines="1"
             android:layout_below="@+id/title"
             android:layout_alignLeft="@+id/title"
