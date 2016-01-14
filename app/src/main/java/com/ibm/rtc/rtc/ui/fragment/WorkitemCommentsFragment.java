@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -76,30 +79,24 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
         addComment.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setTitle(" ");
-
                 View view = LayoutInflater.from(getContext()).inflate(R.layout.edit_comment_dialog, null);
-                builder.setView(view);
                 commentEditText = (EditText)view.findViewById(R.id.editComment);
-                builder.setPositiveButton(R.string.commit_comment, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String comment = commentEditText.getText().toString();
-                        // TODO: 2016/1/13  将结果写回服务器
-                        Comment test3 = new Comment("new creator", new Date(), comment);
-                        comments.add(test3);
-                        setUpList(comments);
-                    }
-                });
-
-                builder.setNegativeButton(R.string.cancel_comment, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                });
-
-                builder.show();
+                new MaterialDialog.Builder(getActivity())
+                        .title("Add Your Comment")
+                        .customView(view, false)
+                        .positiveText(R.string.commit_comment)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(MaterialDialog dialog, DialogAction which) {
+                                String comment = commentEditText.getText().toString();
+                                // TODO: 2016/1/13  将结果写回服务器
+                                Comment test3 = new Comment("new creator", new Date(), comment);
+                                comments.add(test3);
+                                setUpList(comments);
+                            }
+                        })
+                        .negativeText(R.string.cancel_comment)
+                        .show();
             }
         });
     }
