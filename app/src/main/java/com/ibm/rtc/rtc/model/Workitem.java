@@ -71,9 +71,16 @@ public class Workitem /* implements Parcelable*/ {
         workitem.setTypeIndentifier(WorkitemType.getType(
                 object.getJSONObject("type").getString("identifier")));
         workitem.setFoundIn(object.getJSONObject("foundIn").getString("title"));
+
         workitem.setBusinessValue(object.getJSONObject("businessValue").getString("title"));
+        if (workitem.getBusinessValue().equals("null"))
+            workitem.setBusinessValue(null);
         workitem.setRisk(object.getJSONObject("risk").getString("title"));
+        if (workitem.getRisk().equals("null"))
+            workitem.setRisk(null);
         workitem.setStoryPoint(object.getJSONObject("storyPoint").getString("title"));
+        if (workitem.getStoryPoint().equals("null"))
+            workitem.setStoryPoint(null);
 
         if (!object.getString("estimate").equals("null")) {
             workitem.setEstimate(Long.parseLong(object.getString("estimate")));

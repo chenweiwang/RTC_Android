@@ -1,12 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
-<items version="2" >
+<items version="2" />
 
-    <item
-        jar="C:\project\AndroidStudioProjects\RTC_Android\app\build\intermediates\exploded-aar\org.solovyev.android.views\linear-layout-manager\0.5\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="d9e195d6fd00f4f938e173bfee6c621fb26480f5">
-        <dex dex="C:\project\AndroidStudioProjects\RTC_Android\app\build\intermediates\pre-dexed\debug\org.solovyev.android.views-linear-layout-manager-0.5_59485592015e991336a446ab528c02f8a526f966.jar" />
-    </item>
-
-</items>
