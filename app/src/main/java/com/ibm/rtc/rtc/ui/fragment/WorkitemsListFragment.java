@@ -20,6 +20,7 @@ import com.ibm.rtc.rtc.R;
 import com.ibm.rtc.rtc.adapter.WorkitemAdapter;
 import com.ibm.rtc.rtc.core.UrlManager;
 import com.ibm.rtc.rtc.core.VolleyQueue;
+import com.ibm.rtc.rtc.core.WorkitemSorter;
 import com.ibm.rtc.rtc.core.WorkitemsRequest;
 import com.ibm.rtc.rtc.model.Project;
 import com.ibm.rtc.rtc.model.Workitem;
@@ -31,8 +32,6 @@ import com.mikepenz.iconics.IconicsDrawable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -41,11 +40,13 @@ import java.util.List;
 public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> {
     private static final String TAG = "WorkitemsListFragment";
     private static final String PROJECT_INFO = "PROJECT_INFO";
-    private static final String FILTERS = "FILTERS";
+    private static final String WORKITEM_CONFIG = "WORKITEM_CONFIG";
     private static final String SORT = "SORT";
 
     private RequestQueue mRequestQueue;
     private Project mProject;
+    private List<Workitem> list; // 当前project下的workitem列表
+    private int sortType = -1; // 当前界面下workitem的排序方式，默认根据id升序排列
     private ArrayList<Integer> mFilterIds;
     private ArrayList<String> mFilterNames;
     private final int DEFAULT_STATUS_CODE = 500;
@@ -159,12 +160,21 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
                 names[i] = choices[i].name();
         }
 
-        Integer selectedId = 0;
+        Integer selectedId;
+        if (sortType == -1) {
+            SharedPreferences sharedPreferences= getActivity().getSharedPreferences(WORKITEM_CONFIG, Context.MODE_PRIVATE);
+            selectedId = sharedPreferences.getInt("WORKITEM_SORTER",0);
+        } else {
+            selectedId = sortType;
+        }
         new MaterialDialog.Builder(getActivity()).items(names)
                 .itemsCallbackSingleChoice(selectedId, new MaterialDialog.ListCallbackSingleChoice() {
                     @Override
                     public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                        return false;
+                        // 改变页面workitem的排序方式，并将该方式缓存起来
+                        sortType = which;
+                        setUpList(list, sortType);
+                        return true;
                     }
                 }).show();
     }
@@ -172,7 +182,7 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
     private void saveFilter() {
         if (mFilterIds != null && mFilterNames != null) {
             SharedPreferences sharedPreferences = getActivity()
-                    .getSharedPreferences(FILTERS, Context.MODE_PRIVATE);
+                    .getSharedPreferences(WORKITEM_CONFIG, Context.MODE_PRIVATE);
 
             Gson gson = new Gson();
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -184,14 +194,26 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
 
     private void clearSavedFilter() {
         SharedPreferences shared = getActivity()
-                .getSharedPreferences(FILTERS, Context.MODE_PRIVATE);
+                .getSharedPreferences(WORKITEM_CONFIG, Context.MODE_PRIVATE);
 
         SharedPreferences.Editor edit = shared.edit();
         edit.remove("WORKITEM_FILTER");
         edit.remove("WORKITEM_FILTER_IDS");
+        edit.remove("WORKITEM_SORTER");
         edit.apply();
     }
 
+    private void saveSorter() {
+        SharedPreferences sharedPreferences = getActivity()
+                .getSharedPreferences(WORKITEM_CONFIG, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (sortType != -1) {
+            editor.putInt("WORKITEM_SORTER", sortType);
+        } else {
+            editor.putInt("WORKITEM_SORTER", 0);
+        }
+        editor.apply();
+    }
 
 
     private void loadArgumentsForProject() {
@@ -202,20 +224,15 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
         }
     }
 
-    public void setUpList(List<Workitem> workitems) {
+    public void setUpList(List<Workitem> workitems, int which) {
         WorkitemAdapter adapter = new WorkitemAdapter(getActivity(),
                 LayoutInflater.from(getActivity()));
         adapter.setRecyclerAdapterContentListener(this);
 
 
         //默认以id升序
-        Collections.sort(workitems, new Comparator<Workitem>() {
-            @Override
-            public int compare(Workitem lhs, Workitem rhs) {
-                return lhs.getId() < rhs.getId() ? -1 :
-                        lhs.getId() > rhs.getId() ? 1 : 0;
-            }
-        });
+        WorkitemSorter.sort(workitems, which);
+        //将排序后的workitems添加到适配器中
         adapter.addAll(workitems);
 
         setAdapter(adapter);
@@ -232,9 +249,15 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
                 @Override
                 public void onResponse(List<Workitem> workitems) {
                     if (workitems != null && !workitems.isEmpty()) {
+                        list = workitems;
                         hideEmpty();
                         if (refreshing || getAdapter() == null) {
-                            setUpList(workitems);
+                            if (sortType == -1) {
+                                SharedPreferences sharedPreferences= getActivity().getSharedPreferences(WORKITEM_CONFIG, Context.MODE_PRIVATE);
+                                setUpList(workitems, sharedPreferences.getInt("WORKITEM_SORTER",0));
+                            } else {
+                                setUpList(workitems, sortType);
+                            }
                         }
                     } else {
                         setEmpty();
@@ -267,6 +290,7 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
 
     @Override
     public void onStop() {
+        saveSorter();
         super.onStop();
         mRequestQueue.cancelAll(TAG);
     }
