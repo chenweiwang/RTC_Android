@@ -46,7 +46,7 @@
     <!-- Project list fragment -->
     <string name="project_list_title">Projects</string>
     <string name="no_projects">No projects</string>
-    <string name="project_refresh_error">Refresh project List failed</string>
+    <string name="project_refresh_error">Refresh project List Failed</string>
 
     <!-- Workitem detail fragment -->
     <string name="workitem_detail_title">Detail</string>
@@ -80,4 +80,5 @@
     <string name="prompt_comment">Add Comment</string>
     <string name="commit_comment">Commit</string>
     <string name="cancel_comment">Cancel</string>
+    <string name="comment_list_refresh_error">Refresh Comment List Failed.</string>
 </resources>

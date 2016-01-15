@@ -20,16 +20,27 @@
         <TextView
             android:id="@+id/creator"
             tools:text="Creator"
-            style="@style/Base.TextAppearance.AppCompat.Headline"
+            style="@style/Base.TextAppearance.AppCompat.Caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/gapMedium"
             android:gravity="center_vertical"
-            android:textSize="@dimen/textSizeMedium"
+            android:textSize="@dimen/textSizeSmall"
             android:fontFamily="sans-serif"
             android:lines="1"
             android:textStyle="bold"
             android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/description"
+            style="@style/Base.TextAppearance.AppCompat.Headline"
+            tools:text="Description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:layout_below="@+id/creator"
+            android:layout_marginLeft="@dimen/gapMedium"
+            android:textSize="@dimen/textSizeMedium" />
 
         <TextView
             android:id="@+id/createTime"
@@ -38,24 +49,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:maxLines="1"
-            android:layout_below="@+id/creator"
-            android:layout_alignLeft="@+id/creator"
-            android:layout_alignStart="@+id/creator"
+            android:layout_below="@+id/description"
+            android:gravity="bottom|right"
             android:layout_marginLeft="@dimen/gapMedium"
             android:layout_marginTop="@dimen/gapSmall"
             android:textSize="@dimen/textSizeMicro"/>
-
-        <TextView
-            android:id="@+id/description"
-            style="@style/Base.TextAppearance.AppCompat.Caption"
-            tools:text="Description"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="3"
-            android:layout_below="@+id/createTime"
-            android:layout_marginLeft="@dimen/gapMedium"
-            android:textSize="@dimen/textSizeSmall" />
 
     </RelativeLayout>
 

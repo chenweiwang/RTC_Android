@@ -14,7 +14,9 @@
             android:hint="@string/prompt_comment"
             android:inputType="textMultiLine"
             android:minLines="8"
-            android:maxLength="140"
+            android:maxLines="8"
+            android:isScrollContainer="true"
+            android:scrollbars="vertical"
             android:gravity="left|top"
             android:singleLine="true" />
 
