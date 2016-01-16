@@ -30,6 +30,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:src="@mipmap/ibm"/>
+
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -68,7 +73,7 @@
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content" >
 
                 <EditText
                     android:layout_width="match_parent"
@@ -78,23 +83,38 @@
                     android:imeActionId="@+id/login"
                     android:inputType="textUri"
                     android:singleLine="true"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:visibility="gone"/>
 
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content" >
 
                 <EditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/port"
+                    android:hint="@string/prompt_port"
                     android:imeActionId="@+id/login"
                     android:inputType="number"
                     android:singleLine="true"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:visibility="gone"/>
             </android.support.design.widget.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?android:textAppearanceSmall"
+                android:id="@+id/login_advanced"
+                android:text="@string/login_advanced"
+                android:textColor="@color/md_blue_900"
+                android:layout_marginTop="10dp"
+                android:layout_gravity="right"
+                android:clickable="true"
+                />
 
             <Button
                 android:id="@+id/sign_in_button"
@@ -103,7 +123,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/action_sign_in"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:alpha="0.8"
+                android:background="@color/md_blue_900"/>
 
         </LinearLayout>
     </ScrollView>

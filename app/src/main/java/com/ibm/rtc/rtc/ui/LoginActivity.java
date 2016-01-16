@@ -50,6 +50,8 @@ public class LoginActivity extends AppCompatActivity {
     private RequestQueue mRequestQueue;
     private UrlManager mUrlManager;
 
+    private TextView mAdvanced;
+    private boolean isShowAdvanced = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +87,24 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        mAdvanced = (TextView)findViewById(R.id.login_advanced);
+        mAdvanced.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!isShowAdvanced) {
+                    mAdvanced.setText(R.string.login_advanced_close);
+                    mHostView.setVisibility(View.VISIBLE);
+                    mPortView.setVisibility(View.VISIBLE);
+                    isShowAdvanced = true;
+                } else {
+                    mAdvanced.setText(R.string.login_advanced);
+                    mHostView.setVisibility(View.GONE);
+                    mPortView.setVisibility(View.GONE);
+                    isShowAdvanced = false;
+                }
+            }
+        });
     }
 
 
