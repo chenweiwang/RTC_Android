@@ -33,7 +33,7 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
-                android:src="@mipmap/ibm"/>
+                android:src="@mipmap/ibm_logo"/>
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
