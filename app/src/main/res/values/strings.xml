@@ -81,4 +81,6 @@
     <string name="commit_comment">Commit</string>
     <string name="cancel_comment">Cancel</string>
     <string name="comment_list_refresh_error">Refresh Comment List Failed.</string>
+    <string name="login_advanced">Advanced</string>
+    <string name="login_advanced_close">Close</string>
 </resources>
