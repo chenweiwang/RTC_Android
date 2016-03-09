@@ -93,22 +93,32 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(!isShowAdvanced) {
-                    mAdvanced.setText(R.string.login_advanced_close);
-                    mHostView.setVisibility(View.VISIBLE);
-                    mPortView.setVisibility(View.VISIBLE);
-                    isShowAdvanced = true;
+                    showAdvancedOptions();
                 } else {
-                    mAdvanced.setText(R.string.login_advanced);
-                    mHostView.setVisibility(View.GONE);
-                    mPortView.setVisibility(View.GONE);
-                    isShowAdvanced = false;
+                    closeAdvancedOptions();
                 }
             }
         });
     }
 
 
+    private void closeAdvancedOptions() {
+        if (isShowAdvanced) {
+            mAdvanced.setText(R.string.login_advanced);
+            mHostView.setVisibility(View.GONE);
+            mPortView.setVisibility(View.GONE);
+            isShowAdvanced = false;
+        }
+    }
 
+    private void showAdvancedOptions() {
+        if (!isShowAdvanced) {
+            mAdvanced.setText(R.string.login_advanced_close);
+            mHostView.setVisibility(View.VISIBLE);
+            mPortView.setVisibility(View.VISIBLE);
+            isShowAdvanced = true;
+        }
+    }
 
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -168,6 +178,8 @@ public class LoginActivity extends AppCompatActivity {
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
+            if (focusView == mHostView || focusView == mPortView)
+                showAdvancedOptions();
             focusView.requestFocus();
         } else {
             // Show a progress spinner, and kick off a background task to
