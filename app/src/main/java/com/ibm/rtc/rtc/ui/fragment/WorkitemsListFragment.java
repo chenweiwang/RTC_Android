@@ -16,13 +16,15 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.ibm.rtc.rtc.R;
+import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.adapter.WorkitemAdapter;
-import com.ibm.rtc.rtc.core.UrlManager;
+import com.ibm.rtc.rtc.core.UrlBuilder;
 import com.ibm.rtc.rtc.core.VolleyQueue;
 import com.ibm.rtc.rtc.core.WorkitemSorter;
 import com.ibm.rtc.rtc.core.WorkitemsRequest;
 import com.ibm.rtc.rtc.model.Project;
 import com.ibm.rtc.rtc.model.Workitem;
+import com.ibm.rtc.rtc.ui.WorkitemActivity;
 import com.ibm.rtc.rtc.ui.base.FilterChoice;
 import com.ibm.rtc.rtc.ui.base.LoadingListFragment;
 import com.ibm.rtc.rtc.ui.base.SortChoice;
@@ -36,21 +38,25 @@ import java.util.List;
 /**
  * Created by Jack on 2015/12/23.
  */
-public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> {
+public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter>
+        implements WorkitemAdapter.WorkitemSelectedListener {
     private static final String TAG = "WorkitemsListFragment";
     private static final String PROJECT_INFO = "PROJECT_INFO";
     private static final String WORKITEM_CONFIG = "WORKITEM_CONFIG";
+    private static final String ACCOUNT = "Account";
     private static final String SORT = "SORT";
 
     private RequestQueue mRequestQueue;
     private Project mProject;
-    private int sortType = -1; // 当前界面下workitem的排序方式，默认根据id升序排列
+    private Account mAccount;
+    private int mSortType = -1; // 当前界面下workitem的排序方式，默认根据id升序排列
     private List<String> mFilterNames;
     private List<Integer> mFilterIds;
     private final int DEFAULT_STATUS_CODE = 500;
 
-    public static WorkitemsListFragment newInstance(Project project) {
+    public static WorkitemsListFragment newInstance(Account account, Project project) {
         Bundle bundle = new Bundle();
+        bundle.putParcelable(ACCOUNT, account);
         bundle.putParcelable(PROJECT_INFO, project);
         WorkitemsListFragment workitemsListFragment = new WorkitemsListFragment();
         workitemsListFragment.setArguments(bundle);
@@ -62,7 +68,7 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
         super.onCreate(savedInstanceState);
 
         setHasOptionsMenu(true);
-        loadArgumentsForProject();
+        loadArguments();
         mRequestQueue = VolleyQueue.getInstance(getActivity()).getRequestQueue();
     }
 
@@ -157,18 +163,18 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
         }
 
         Integer selectedId;
-        if (sortType == -1) {
+        if (mSortType == -1) {
             SharedPreferences sharedPreferences= getActivity().getSharedPreferences(WORKITEM_CONFIG, Context.MODE_PRIVATE);
             selectedId = sharedPreferences.getInt("WORKITEM_SORTER",0);
         } else {
-            selectedId = sortType;
+            selectedId = mSortType;
         }
         new MaterialDialog.Builder(getActivity()).items(names)
                 .itemsCallbackSingleChoice(selectedId, new MaterialDialog.ListCallbackSingleChoice() {
                     @Override
                     public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
                         // 改变页面workitem的排序方式，并将该方式缓存起来
-                        sortType = which;
+                        mSortType = which;
                         executeRequest();
                         return true;
                     }
@@ -179,17 +185,18 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
         SharedPreferences sharedPreferences = getActivity()
                 .getSharedPreferences(WORKITEM_CONFIG, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        if (sortType != -1) {
-            editor.putInt("WORKITEM_SORTER", sortType);
+        if (mSortType != -1) {
+            editor.putInt("WORKITEM_SORTER", mSortType);
         } else {
             editor.putInt("WORKITEM_SORTER", 0);
         }
         editor.apply();
     }
 
-    private void loadArgumentsForProject() {
+    private void loadArguments() {
         if (getArguments() != null) {
             mProject = getArguments().getParcelable(PROJECT_INFO);
+            mAccount = getArguments().getParcelable(ACCOUNT);
         } else {
             throw new IllegalStateException("Project must not be null");
         }
@@ -199,6 +206,7 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
         WorkitemAdapter adapter = new WorkitemAdapter(getActivity(),
                 LayoutInflater.from(getActivity()));
         adapter.setRecyclerAdapterContentListener(this);
+        adapter.setWorkitemSelectedListener(this);
         SharedPreferences sharedPreferences= getActivity().getSharedPreferences(WORKITEM_CONFIG, Context.MODE_PRIVATE);
 
         List<Workitem> workitemList = new ArrayList<Workitem>();
@@ -215,10 +223,10 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
         }
 
         // 对筛选出的workitem进行排序
-        if (sortType == -1) {
+        if (mSortType == -1) {
             WorkitemSorter.sort(workitemList, sharedPreferences.getInt("WORKITEM_SORTER", 0));
         } else {
-            WorkitemSorter.sort(workitemList, sortType);
+            WorkitemSorter.sort(workitemList, mSortType);
         }
         //将排序后的workitems添加到适配器中
         adapter.addAll(workitemList);
@@ -230,8 +238,8 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
     protected void executeRequest() {
         super.executeRequest();
 
-        UrlManager urlManager = UrlManager.getInstance(getActivity());
-        String workitemsUrl = urlManager.getRootUrl() + "workitems?uuid=" + mProject.getUuid();
+        String workitemsUrl = new UrlBuilder(mAccount)
+                .withProjectUUid(mProject.getUuid()).buildWorkitemQueryUrl();
         WorkitemsRequest workitemsRequest = new WorkitemsRequest(workitemsUrl,
                 new Response.Listener<List<Workitem>>() {
                     @Override
@@ -275,5 +283,11 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter> 
         saveSorter();
         super.onStop();
         mRequestQueue.cancelAll(TAG);
+    }
+
+    @Override
+    public void onWorkitemSelected(Workitem workitem) {
+        startActivity(WorkitemActivity.createLauncherIntent(this.getActivity(),
+                mAccount, workitem.getId(), workitem.getTitle()));
     }
 }

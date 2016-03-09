@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import com.ibm.rtc.rtc.R;
 import com.ibm.rtc.rtc.model.Workitem;
-import com.ibm.rtc.rtc.ui.WorkitemActivity;
 
 /**
  * Created by Jack on 2015/12/17.
@@ -20,10 +19,15 @@ public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdap
 
     private boolean showOwnerName = true;
     private final Resources resources;
+    private WorkitemSelectedListener listener;
 
     public WorkitemAdapter(Context context, LayoutInflater inflater) {
         super(inflater);
         resources = context.getResources();
+    }
+
+    public void setWorkitemSelectedListener(WorkitemSelectedListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -61,13 +65,15 @@ public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdap
                 @Override
                 public void onClick(View v) {
                     Workitem workitem = getItem(getAdapterPosition());
-                    if (workitem != null) {
-                        v.getContext().startActivity(
-                                WorkitemActivity.createLauncherIntent(v.getContext(), workitem.getId(),
-                                        workitem.getTitle()));
+                    if (workitem != null && listener != null) {
+                        listener.onWorkitemSelected(workitem);
                     }
                 }
             });
         }
+    }
+
+    public interface WorkitemSelectedListener {
+        public void onWorkitemSelected(Workitem workitem);
     }
 }

@@ -1,6 +1,5 @@
 package com.ibm.rtc.rtc.ui.fragment;
 
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -17,21 +16,17 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.ibm.rtc.rtc.R;
+import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.adapter.CommentAdapter;
 import com.ibm.rtc.rtc.core.CommentsRequest;
-import com.ibm.rtc.rtc.core.ProjectsRequest;
-import com.ibm.rtc.rtc.core.UrlManager;
+import com.ibm.rtc.rtc.core.UrlBuilder;
 import com.ibm.rtc.rtc.core.VolleyQueue;
-import com.ibm.rtc.rtc.core.WorkitemRequest;
 import com.ibm.rtc.rtc.model.Comment;
-import com.ibm.rtc.rtc.model.Project;
-import com.ibm.rtc.rtc.model.Workitem;
+import com.ibm.rtc.rtc.ui.base.LoadingListFragment;
 import com.ibm.rtc.rtc.ui.base.TitleProvider;
 import com.mikepenz.iconics.typeface.IIcon;
 import com.mikepenz.octicons_typeface_library.Octicons;
-import com.ibm.rtc.rtc.ui.base.LoadingListFragment;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -41,8 +36,10 @@ import java.util.List;
 public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter> implements TitleProvider {
     private static final String TAG = "CommentsFragment";
     private static final String WORKITEM_ID = "WORKITEM_ID";
+    private static final String ACCOUNT = "Account";
 
     private RequestQueue mRequestQueue;
+    private Account mAccount;
     private final int DEFAULT_STATUS_CODE = 500;
 
     private FloatingActionButton addCommentBtn;
@@ -58,6 +55,7 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
         super.onCreate(savedInstanceState);
 
         workitemId = getArguments().getInt(WORKITEM_ID);
+        mAccount = (Account) getArguments().get(ACCOUNT);
         addCommentBtn = new FloatingActionButton(getContext());
         addCommentBtn.findViewById(R.id.addComment);
         addCommentBtn.show();
@@ -113,8 +111,8 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
     protected void executeRequest() {
         super.executeRequest();
         // TODO: 2016/1/12 add get comment
-        UrlManager urlManager = UrlManager.getInstance(getActivity());
-        String commentsUrl = urlManager.getRootUrl() + "comments/" + workitemId;
+        final String commentsUrl = new UrlBuilder().withAccount(mAccount).withWorkitemId(workitemId)
+                .buildCommentsUrl();
         CommentsRequest commentsRequest = new CommentsRequest(commentsUrl,
             new Response.Listener<List<Comment>>() {
                 @Override
@@ -162,8 +160,9 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
         super.onStop();
         mRequestQueue.cancelAll(TAG);
     }
-    public static WorkitemCommentsFragment newInstance(int id) {
+    public static WorkitemCommentsFragment newInstance(Account account, int id) {
         Bundle bundle = new Bundle();
+        bundle.putParcelable(ACCOUNT, account);
         bundle.putInt(WORKITEM_ID, id);
 
         WorkitemCommentsFragment commentsFragment = new WorkitemCommentsFragment();

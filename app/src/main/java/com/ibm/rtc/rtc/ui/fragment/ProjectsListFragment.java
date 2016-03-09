@@ -10,9 +10,10 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.ibm.rtc.rtc.R;
+import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.adapter.ProjectAdapter;
 import com.ibm.rtc.rtc.core.ProjectsRequest;
-import com.ibm.rtc.rtc.core.UrlManager;
+import com.ibm.rtc.rtc.core.UrlBuilder;
 import com.ibm.rtc.rtc.core.VolleyQueue;
 import com.ibm.rtc.rtc.model.Project;
 import com.ibm.rtc.rtc.ui.base.LoadingListFragment;
@@ -25,15 +26,27 @@ import java.util.List;
 public class ProjectsListFragment extends LoadingListFragment<ProjectAdapter>
         implements ProjectAdapter.ProjectItemSelectedListener {
     private static final String TAG = "ProjectsListFragment";
+    private static final String ACCOUNT = "Account";
 
-    private ProjectSwitchLisenter projectSwitchLisenter;
+    private ProjectSwitchListener mProjectSwitchListener;
     private RequestQueue mRequestQueue;
+    private Account mAccount;
     private final int DEFAULT_STATUS_CODE = 500;
+
+    public static ProjectsListFragment newInstance(Account account) {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(ACCOUNT, account);
+        ProjectsListFragment fragment = new ProjectsListFragment();
+        fragment.setArguments(bundle);
+        return fragment;
+    }
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mAccount = (Account) getArguments().get(ACCOUNT);
         mRequestQueue = VolleyQueue.getInstance(getActivity()).getRequestQueue();
     }
 
@@ -50,8 +63,7 @@ public class ProjectsListFragment extends LoadingListFragment<ProjectAdapter>
     protected void executeRequest() {
         super.executeRequest();
 
-        UrlManager urlManager = UrlManager.getInstance(getActivity());
-        String projectUrl = urlManager.getRootUrl() + "projects";
+        String projectUrl = new UrlBuilder(mAccount).buildProjectsUrl();
         ProjectsRequest projectsRequest = new ProjectsRequest(projectUrl,
                 new Response.Listener<List<Project>>() {
                     @Override
@@ -96,16 +108,16 @@ public class ProjectsListFragment extends LoadingListFragment<ProjectAdapter>
 
     @Override
     public void onProjectItemSelected(Project project) {
-        if (projectSwitchLisenter != null) {
-            projectSwitchLisenter.onProjectSwitch(project);
+        if (mProjectSwitchListener != null) {
+            mProjectSwitchListener.onProjectSwitch(project);
         }
     }
 
-    public void setProjectSwitchLisenter(ProjectSwitchLisenter projectSwitchLisenter) {
-        this.projectSwitchLisenter = projectSwitchLisenter;
+    public void setmProjectSwitchListener(ProjectSwitchListener mProjectSwitchListener) {
+        this.mProjectSwitchListener = mProjectSwitchListener;
     }
 
-    public interface ProjectSwitchLisenter {
+    public interface ProjectSwitchListener {
         public void onProjectSwitch(Project project);
     }
 }
