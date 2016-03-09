@@ -3,17 +3,14 @@ package com.ibm.rtc.rtc.ui;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -27,7 +24,6 @@ import com.ibm.rtc.rtc.R;
 import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.account.AccountManager;
 import com.ibm.rtc.rtc.core.UrlBuilder;
-import com.ibm.rtc.rtc.core.UrlManager;
 import com.ibm.rtc.rtc.core.VolleyQueue;
 
 import org.json.JSONException;
@@ -68,17 +64,29 @@ public class LoginActivity extends AppCompatActivity {
         mHostView = (EditText) findViewById(R.id.host);
         mPortView = (EditText) findViewById(R.id.port);
         mUsernameView = (EditText) findViewById(R.id.username);
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+
+        //auto load the host and port configuration after inputting the username.
+        mUsernameView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    String input = ((EditText)v).getText().toString();
+                    if (input.isEmpty()) {
+                        return;
+                    }
+                    mAccount = mAccountManager.getAccountByUsername(input);
+                    if (mAccount != null) {
+                        mHostView.setText(mAccount.getHost());
+                        mPortView.setText(mAccount.getPort());
+                    } else {
+                        if (!isShowAdvanced) {
+                            showAdvancedOptions();
+                        }
+                    }
                 }
-                return false;
             }
         });
+        mPasswordView = (EditText) findViewById(R.id.password);
 
         Button mSignInButton = (Button) findViewById(R.id.sign_in_button);
         mSignInButton.setOnClickListener(new OnClickListener() {
@@ -96,18 +104,33 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(!isShowAdvanced) {
-                    mAdvanced.setText(R.string.login_advanced_close);
-                    mHostView.setVisibility(View.VISIBLE);
-                    mPortView.setVisibility(View.VISIBLE);
-                    isShowAdvanced = true;
+                    showAdvancedOptions();
                 } else {
-                    mAdvanced.setText(R.string.login_advanced);
-                    mHostView.setVisibility(View.GONE);
-                    mPortView.setVisibility(View.GONE);
-                    isShowAdvanced = false;
+                    closeAdvancedOptions();
                 }
             }
         });
+    }
+
+    /**
+     * Fold the advanced login options.
+     */
+    private void closeAdvancedOptions() {
+        if (isShowAdvanced) {
+            mAdvanced.setText(R.string.login_advanced);
+            mHostView.setVisibility(View.GONE);
+            mPortView.setVisibility(View.GONE);
+            isShowAdvanced = false;
+        }
+    }
+
+    private void showAdvancedOptions() {
+        if (!isShowAdvanced) {
+            mAdvanced.setText(R.string.login_advanced_close);
+            mHostView.setVisibility(View.VISIBLE);
+            mPortView.setVisibility(View.VISIBLE);
+            isShowAdvanced = true;
+        }
     }
 
     /**
@@ -135,7 +158,7 @@ public class LoginActivity extends AppCompatActivity {
         String host = mHostView.getText().toString();
         Integer port = Integer.parseInt(mPortView.getText().toString());
 
-        final Account account = new Account(username, password, host, port);
+        mAccount = new Account(username, password, host, port);
 
         boolean cancel = false;
         View focusView = null;
@@ -171,21 +194,23 @@ public class LoginActivity extends AppCompatActivity {
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
+            if (focusView == mHostView || focusView == mPortView)
+                showAdvancedOptions();
             focusView.requestFocus();
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
 
-            String loginUrl = new UrlBuilder(account).buildLoginUrl();
+            String loginUrl = new UrlBuilder(mAccount).buildLoginUrl();
 
             final String TOKEN_ATTR = "token";
             final String SUCCESS_ATTR = "success";
 
             JSONObject body = new JSONObject();
             try {
-                body.put("username", account.getUsername());
-                body.put("password", account.getPassword());
+                body.put("username", mAccount.getUsername());
+                body.put("password", mAccount.getPassword());
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -198,8 +223,8 @@ public class LoginActivity extends AppCompatActivity {
                     try {
                         if (response.getBoolean(SUCCESS_ATTR)) {
                             //login success
-                            account.setToken(response.getString(TOKEN_ATTR));
-                            onLoginSuccess(account);
+                            mAccount.setToken(response.getString(TOKEN_ATTR));
+                            onLoginSuccess(mAccount);
                         } else {
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
                             mPasswordView.requestFocus();
@@ -228,14 +253,14 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Callback of login. Save the authenticated account and start the MainActivity.
+     */
     private void onLoginSuccess(Account account) {
         mRequestQueue.cancelAll(TAG);
+        mAccountManager.saveAccount(account);
 
-        accountManager.saveAccount(account);
-
-        Intent intent = new Intent();
-        intent.setClass(this, MainActivity.class);
-        startActivity(intent);
+        MainActivity.startActivity(this, account.getUsername());
         finish();
     }
 
@@ -278,8 +303,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        mHostView.setText(mUrlManager.getmHost());
-        mPortView.setText(String.valueOf(mUrlManager.getmPort()));
     }
 
     @Override

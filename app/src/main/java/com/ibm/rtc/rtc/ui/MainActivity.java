@@ -13,6 +13,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 
 import com.google.gson.Gson;
@@ -40,9 +41,11 @@ import java.util.List;
  * Created by v-wajie on 2015/12/8.
  */
 public class MainActivity extends AppCompatActivity
-        implements AccountHeader.OnAccountHeaderListener, ProjectsListFragment.ProjectSwitchLisenter{
+        implements AccountHeader.OnAccountHeaderListener, ProjectsListFragment.ProjectSwitchListener {
     private static final String TAG = "MainActivity";
     private static final String CURRENT_PROJECT = "CurrentProject";
+    private static final String CURRENT_USER = "CurrentUser";
+    private static final String USERNAME = "Username";
 
     private Toolbar mToolbar;
     private Drawer mDrawer;
@@ -54,8 +57,12 @@ public class MainActivity extends AppCompatActivity
     private List<Account> mAccountList;
     private Account mSelectedAccount;
 
-    public static void startActivity(Activity context) {
+    /**
+     * Static Factory method for MainActivity.
+     */
+    public static void startActivity(Activity context, String username) {
         Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra(USERNAME, username);
         context.startActivity(intent);
     }
 
@@ -71,6 +78,27 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
+        }
+
+        //when Launched from the login Activity, we can get the current login account.
+        if (this.getIntent().getExtras() != null) {
+            String username = this.getIntent().getExtras().getString(USERNAME);
+            Log.d(TAG, "OnCreate: The selected user is: " + username);
+
+            for (Account account : mAccountList) {
+                if (account.getUsername().equals(username)) {
+                    mSelectedAccount = account;
+                    break;
+                }
+            }
+        } else {
+            //Or read the last account from SharedPreference.
+            String jsonText = PreferenceManager.getDefaultSharedPreferences(this)
+                    .getString(CURRENT_USER, null);
+            if (jsonText != null) {
+                Gson gson = new Gson();
+                mSelectedAccount = gson.fromJson(jsonText, Account.class);
+            }
         }
 
         setContentView(R.layout.generic_toolbar);
@@ -121,7 +149,7 @@ public class MainActivity extends AppCompatActivity
 
     private void createDrawer() {
 
-        AccountHeader accountHeader = builderHeader();
+        AccountHeader accountHeader = buildHeader();
         //create the Drawer
         DrawerBuilder drawerBuilder = new DrawerBuilder().withActivity(this)
                 .withToolbar(getToolbar())
@@ -174,22 +202,20 @@ public class MainActivity extends AppCompatActivity
         mDrawer = drawerBuilder.build();
     }
 
-    private AccountHeader builderHeader() {
+    private AccountHeader buildHeader() {
 
         AccountHeaderBuilder headerBuilder = new AccountHeaderBuilder().withActivity(this)
                 //TODO set the header Background color
                 .withHeaderBackground(R.color.cardview_dark_background)
                 .withOnAccountHeaderListener(this);
 
-        boolean usedSelected = false;
         for (Account account : mAccountList) {
             ProfileDrawerItem profileDrawerItem = new ProfileDrawerItem().withName(account.getUsername())
                     .withIdentifier(account.hashCode())
                     //TODO 头像设置
                     .withIcon(R.mipmap.ic_launcher);
-            //默认选中第一个
-            if (!usedSelected) {
-                usedSelected = true;
+
+            if (mSelectedAccount == null || account == mSelectedAccount) {
                 profileDrawerItem.withSetSelected(true);
                 mSelectedAccount = account;
             } else {
@@ -230,11 +256,10 @@ public class MainActivity extends AppCompatActivity
                     getString(R.string.please_select_project), Snackbar.LENGTH_SHORT).show();
             mDrawer.setSelection(R.id.drawer_projects);
             return false;
-            //throw new IllegalStateException("CurrentProject must not be null");
         }
 
         if (mWorkitemsListFragment == null) {
-            mWorkitemsListFragment = WorkitemsListFragment.newInstance(mCurrentProject);
+            mWorkitemsListFragment = WorkitemsListFragment.newInstance(mSelectedAccount, mCurrentProject);
         }
         setFragment(mWorkitemsListFragment, false);
         setTitle(getString(R.string.workitem_list_title) + mCurrentProject.getTitle());
@@ -244,8 +269,8 @@ public class MainActivity extends AppCompatActivity
     private boolean onProjectsSelected() {
         //Snackbar.make(mContentView, "Projects clicked", Snackbar.LENGTH_SHORT).show();
         if (mProjectsListFragment == null) {
-            mProjectsListFragment = new ProjectsListFragment();
-            mProjectsListFragment.setProjectSwitchLisenter(this);
+            mProjectsListFragment = ProjectsListFragment.newInstance(mSelectedAccount);
+            mProjectsListFragment.setmProjectSwitchListener(this);
         }
         clearFragments();
         setFragment(mProjectsListFragment, false);
@@ -268,6 +293,7 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences.Editor editor =
                 PreferenceManager.getDefaultSharedPreferences(this).edit();
         editor.remove(CURRENT_PROJECT);
+        editor.remove(CURRENT_USER);
         editor.apply();
 
         Intent intent = new Intent();
@@ -308,6 +334,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * handle the back button pressed event.
+     * */
     @Override
     public void onBackPressed() {
         if (mDrawer != null && mDrawer.isDrawerOpen()) {
@@ -322,6 +351,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * listen to the project switch, when the current project has been switched,
+     * save it, and set the drawer selection to workitems.
+     * */
     @Override
     public void onProjectSwitch(Project project) {
         if (mCurrentProject == null || !mCurrentProject.getUuid().equals(project.getUuid())) {

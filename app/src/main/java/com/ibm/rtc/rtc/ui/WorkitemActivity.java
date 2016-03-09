@@ -15,8 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.ibm.rtc.rtc.R;
-import com.ibm.rtc.rtc.model.Project;
-import com.ibm.rtc.rtc.model.Workitem;
+import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.ui.base.TitleProvider;
 import com.ibm.rtc.rtc.ui.fragment.WorkitemCommentsFragment;
 import com.ibm.rtc.rtc.ui.fragment.WorkitemDetailFragment;
@@ -33,7 +32,9 @@ public class WorkitemActivity extends AppCompatActivity {
     private static final String TAG = "WorkitemActivity";
     public static final String WORKITME_ID = "WORKITME_ID";
     public static final String WORKITEM_TITLE = "WORKITEM_TITLE";
+    private static final String ACCOUNT = "Account";
 
+    private Account mAccount;
     private Toolbar mToolbar;
     private ArrayList<Fragment> mFragments;
     private ViewPager mViewPager;
@@ -41,8 +42,9 @@ public class WorkitemActivity extends AppCompatActivity {
     private Integer mWorkitemId;
     private String mWorkitemTitle;
 
-    public static Intent createLauncherIntent(Context context, int workitemId, String workitemTitle) {
+    public static Intent createLauncherIntent(Context context, Account account, int workitemId, String workitemTitle) {
         Bundle bundle = new Bundle();
+        bundle.putParcelable(ACCOUNT, account);
         bundle.putInt(WORKITME_ID, workitemId);
         bundle.putString(WORKITEM_TITLE, workitemTitle);
 
@@ -69,12 +71,14 @@ public class WorkitemActivity extends AppCompatActivity {
         }
 
         //从Intent中获取将要展示的Workitem.
-        if (getIntent().getExtras() != null) {
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
             try {
-                mWorkitemId = getIntent().getExtras().getInt(WORKITME_ID);
-                mWorkitemTitle = getIntent().getExtras().getString(WORKITEM_TITLE);
+                mWorkitemId = extras.getInt(WORKITME_ID);
+                mWorkitemTitle = extras.getString(WORKITEM_TITLE);
+                mAccount = (Account) extras.get(ACCOUNT);
             } catch (Exception e) {
-                finish();
+                throw new IllegalArgumentException("Arguments error in Workitem Activity.");
             }
 
             //设置标题
@@ -99,8 +103,8 @@ public class WorkitemActivity extends AppCompatActivity {
 
     private void addFragments() {
         mFragments = new ArrayList<>();
-        mFragments.add(WorkitemDetailFragment.newInstance(mWorkitemId));
-        mFragments.add(WorkitemCommentsFragment.newInstance(mWorkitemId));
+        mFragments.add(WorkitemDetailFragment.newInstance(mAccount, mWorkitemId));
+        mFragments.add(WorkitemCommentsFragment.newInstance(mAccount, mWorkitemId));
     }
 
     private void showTabsIcons(TabLayout tabLayout) {

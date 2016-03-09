@@ -13,7 +13,7 @@ public class UrlBuilder {
     private static final String API_PATH = "/api";
     private static final String PROJECTS_PATH = "/projects";
     private static final String WORKITEMS_PATH = "/workitems";
-    private static final String COMMENTS_PATH = "/comments/";
+    private static final String COMMENTS_PATH = "/comments";
 
     private String host;
     private int port;
@@ -38,16 +38,16 @@ public class UrlBuilder {
         return this;
     }
 
-    private boolean checkHostAndPort() {
+    private boolean validHostAndPort() {
         return host != null && !host.isEmpty() && port > 0;
     }
 
-    private boolean checkToken() {
+    private boolean validToken() {
         return token != null && !token.isEmpty();
     }
 
     public String buildLoginUrl() {
-        if (checkHostAndPort()) {
+        if (!validHostAndPort()) {
             throw new RuntimeException("Host or port must be provided.");
         }
 
@@ -57,7 +57,7 @@ public class UrlBuilder {
     }
 
     public String buildProjectsUrl() {
-        if (!checkHostAndPort() || !checkToken()) {
+        if (!validHostAndPort() || !validToken()) {
             throw new RuntimeException("Host, port or token must be provided.");
         }
 
@@ -78,7 +78,7 @@ public class UrlBuilder {
     }
 
     public String buildWorkitemQueryUrl() {
-        if (!checkHostAndPort() || !checkToken()) {
+        if (!validHostAndPort() || !validToken()) {
             throw new RuntimeException("Host, port or token must be provided.");
         }
 
@@ -88,10 +88,10 @@ public class UrlBuilder {
         builder.append("?token=").append(token);
 
         if (projectUuid != null && !projectUuid.isEmpty()) {
-            builder.append("uuid=").append(projectUuid);
+            builder.append("&uuid=").append(projectUuid);
         }
         if (workitemId >= 0) {
-            builder.append("id=").append(workitemId);
+            builder.append("&id=").append(workitemId);
         }
 
         clear();
@@ -99,7 +99,7 @@ public class UrlBuilder {
     }
 
     public String buildCommentsUrl() {
-        if (!checkHostAndPort() || !checkToken()) {
+        if (!validHostAndPort() || !validToken()) {
             throw new RuntimeException("Host, port or token must be provided.");
         }
 
