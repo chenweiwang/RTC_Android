@@ -10,7 +10,7 @@ import android.preference.PreferenceManager;
 public class UrlManager {
 
     private static final String TAG = "UrlManager";
-    private static final String LOGIN_PATH = "login";
+    private static final String LOGIN_PATH = "/authenticate";
     private static final String LOCALHOST = "localhost";
 
     private static final String DEFAULT_PROTOCOL = "http://";
@@ -57,7 +57,7 @@ public class UrlManager {
                 return mProtocol + LOCALHOST + ":" + mPort + "/";
             }
         }
-        return mProtocol + mHost + ":" + mPort + "/";
+        return mProtocol + mHost + ":" + mPort + "/api";
     }
 
     public String getWorkitemUrl(int id) {

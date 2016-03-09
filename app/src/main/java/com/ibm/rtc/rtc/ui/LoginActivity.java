@@ -26,6 +26,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.ibm.rtc.rtc.R;
 import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.account.AccountManager;
+import com.ibm.rtc.rtc.core.UrlBuilder;
 import com.ibm.rtc.rtc.core.UrlManager;
 import com.ibm.rtc.rtc.core.VolleyQueue;
 
@@ -48,7 +49,8 @@ public class LoginActivity extends AppCompatActivity {
     private View mLoginFormView;
     private boolean isLogining =false;
     private RequestQueue mRequestQueue;
-    private UrlManager mUrlManager;
+    private AccountManager mAccountManager;
+    private Account mAccount;
 
     private TextView mAdvanced;
     private boolean isShowAdvanced = false;
@@ -59,7 +61,8 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         mRequestQueue = VolleyQueue.getInstance(this).getRequestQueue();
-        mUrlManager = UrlManager.getInstance(this);
+
+        mAccountManager = AccountManager.getInstance(this);
 
         // Set up the login form.
         mHostView = (EditText) findViewById(R.id.host);
@@ -107,9 +110,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-
-
-
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
@@ -129,10 +129,13 @@ public class LoginActivity extends AppCompatActivity {
         mPortView.setError(null);
 
         // Store values at the time of the login attempt.
-        final String username = mUsernameView.getText().toString();
-        final String password = mPasswordView.getText().toString();
-        final String host = mHostView.getText().toString();
-        final Integer port = Integer.parseInt(mPortView.getText().toString());
+        String username = mUsernameView.getText().toString();
+        String password = mPasswordView.getText().toString();
+
+        String host = mHostView.getText().toString();
+        Integer port = Integer.parseInt(mPortView.getText().toString());
+
+        final Account account = new Account(username, password, host, port);
 
         boolean cancel = false;
         View focusView = null;
@@ -174,15 +177,15 @@ public class LoginActivity extends AppCompatActivity {
             // perform the user login attempt.
             showProgress(true);
 
-            mUrlManager.setHost(host);
-            mUrlManager.setPort(port);
-            String loginUrl = mUrlManager.getLoginUrl();
+            String loginUrl = new UrlBuilder(account).buildLoginUrl();
 
-            final String AUTHENTICATE_ATTR = "authenticated";
+            final String TOKEN_ATTR = "token";
+            final String SUCCESS_ATTR = "success";
+
             JSONObject body = new JSONObject();
             try {
-                body.put("username", username);
-                body.put("password", password);
+                body.put("username", account.getUsername());
+                body.put("password", account.getPassword());
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -193,9 +196,10 @@ public class LoginActivity extends AppCompatActivity {
                     isLogining = false;
                     showProgress(false);
                     try {
-                        if (response.getBoolean(AUTHENTICATE_ATTR)) {
+                        if (response.getBoolean(SUCCESS_ATTR)) {
                             //login success
-                            onLoginSuccess(username, password);
+                            account.setToken(response.getString(TOKEN_ATTR));
+                            onLoginSuccess(account);
                         } else {
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
                             mPasswordView.requestFocus();
@@ -224,10 +228,9 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void onLoginSuccess(String username, String password) {
+    private void onLoginSuccess(Account account) {
         mRequestQueue.cancelAll(TAG);
-        AccountManager accountManager = AccountManager.getInstance(this);
-        Account account = new Account(username, password);
+
         accountManager.saveAccount(account);
 
         Intent intent = new Intent();

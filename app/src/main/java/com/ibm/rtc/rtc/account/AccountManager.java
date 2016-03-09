@@ -49,6 +49,20 @@ public class AccountManager {
         return accountList;
     }
 
+    public @Nullable Account getAccountByUsername(String username) {
+        ArrayList<Account> accounts = getAccounts();
+        if (accounts == null) {
+            return null;
+        }
+        for (Account account : accounts) {
+            if (account.getUsername().equals(username)) {
+                return account;
+            }
+        }
+
+        return null;
+    }
+
     public void saveAccount(Account account) {
         List<Account> accountList = getAccounts();
         if (accountList == null)
