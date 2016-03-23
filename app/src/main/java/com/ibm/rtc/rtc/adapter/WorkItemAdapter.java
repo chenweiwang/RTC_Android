@@ -15,13 +15,13 @@ import com.ibm.rtc.rtc.model.Workitem;
 /**
  * Created by Jack on 2015/12/17.
  */
-public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdapter.ViewHolder> {
+public class WorkItemAdapter extends RecyclerArrayAdapter<Workitem, WorkItemAdapter.ViewHolder> {
 
     private boolean showOwnerName = true;
     private final Resources resources;
     private WorkitemSelectedListener listener;
 
-    public WorkitemAdapter(Context context, LayoutInflater inflater) {
+    public WorkItemAdapter(Context context, LayoutInflater inflater) {
         super(inflater);
         resources = context.getResources();
     }

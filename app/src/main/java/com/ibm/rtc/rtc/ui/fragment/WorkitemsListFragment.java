@@ -17,7 +17,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.ibm.rtc.rtc.R;
 import com.ibm.rtc.rtc.account.Account;
-import com.ibm.rtc.rtc.adapter.WorkitemAdapter;
+import com.ibm.rtc.rtc.adapter.WorkItemAdapter;
 import com.ibm.rtc.rtc.core.UrlBuilder;
 import com.ibm.rtc.rtc.core.VolleyQueue;
 import com.ibm.rtc.rtc.core.WorkitemSorter;
@@ -38,8 +38,8 @@ import java.util.List;
 /**
  * Created by Jack on 2015/12/23.
  */
-public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter>
-        implements WorkitemAdapter.WorkitemSelectedListener {
+public class WorkitemsListFragment extends LoadingListFragment<WorkItemAdapter>
+        implements WorkItemAdapter.WorkitemSelectedListener {
     private static final String TAG = "WorkitemsListFragment";
     private static final String PROJECT_INFO = "PROJECT_INFO";
     private static final String WORKITEM_CONFIG = "WORKITEM_CONFIG";
@@ -158,8 +158,12 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter>
         //don't show the Unhandled option
         String[] names = new String[choices.length - 1];
         for (int i = 0; i < choices.length; ++i) {
-            if (choices[i] != SortChoice.Unhandled)
-                names[i] = choices[i].name();
+            if (choices[i] != SortChoice.Unhandled) {
+                names[i] = choices[i].name().replaceAll("By", "By ");
+                names[i] = names[i].replaceAll("Id", "Id ");
+                names[i] = names[i].replaceAll("ed", "ed ");
+                names[i] = names[i].replaceAll("st", "st ");
+            }
         }
 
         Integer selectedId;
@@ -203,7 +207,7 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkitemAdapter>
     }
 
     public void setUpList(List<Workitem> workitems) {
-        WorkitemAdapter adapter = new WorkitemAdapter(getActivity(),
+        WorkItemAdapter adapter = new WorkItemAdapter(getActivity(),
                 LayoutInflater.from(getActivity()));
         adapter.setRecyclerAdapterContentListener(this);
         adapter.setWorkitemSelectedListener(this);

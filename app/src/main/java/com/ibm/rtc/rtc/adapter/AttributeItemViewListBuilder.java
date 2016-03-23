@@ -22,7 +22,7 @@ public class AttributeItemViewListBuilder {
     private final Context context;
     private final ViewGroup parent;
     private List<View> viewList;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss");
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
     public AttributeItemViewListBuilder(Context context, Workitem workitem, ViewGroup parent) {
         this.context = context;

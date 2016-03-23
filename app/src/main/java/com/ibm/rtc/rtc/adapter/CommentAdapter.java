@@ -21,6 +21,8 @@ import java.text.SimpleDateFormat;
 public class CommentAdapter extends RecyclerArrayAdapter<Comment, CommentAdapter.ViewHolder> {
     private final Resources resources;
 
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
     public CommentAdapter(Context context, LayoutInflater inflater) {
         super(inflater);
         resources = context.getResources();
@@ -30,7 +32,7 @@ public class CommentAdapter extends RecyclerArrayAdapter<Comment, CommentAdapter
     protected void onBindViewHolder(ViewHolder holder, Comment comment) {
         holder.textCreator.setText(comment.getCreator());
         // TODO: 2016/1/12 date format 
-        holder.textCreateTime.setText(comment.getCreatedTime().toString());
+        holder.textCreateTime.setText(dateFormat.format(comment.getCreatedTime()));
         // TODO: 2016/1/12 add avatar
         holder.textDescription.setText(comment.getDescription());
     }
