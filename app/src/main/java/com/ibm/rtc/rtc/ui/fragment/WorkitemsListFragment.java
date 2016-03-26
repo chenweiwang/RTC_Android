@@ -159,10 +159,7 @@ public class WorkitemsListFragment extends LoadingListFragment<WorkItemAdapter>
         String[] names = new String[choices.length - 1];
         for (int i = 0; i < choices.length; ++i) {
             if (choices[i] != SortChoice.Unhandled) {
-                names[i] = choices[i].name().replaceAll("By", "By ");
-                names[i] = names[i].replaceAll("Id", "Id ");
-                names[i] = names[i].replaceAll("ed", "ed ");
-                names[i] = names[i].replaceAll("st", "st ");
+                names[i] = choices[i].toString();
             }
         }
 

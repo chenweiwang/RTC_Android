@@ -35,13 +35,18 @@ public class WorkItemAdapter extends RecyclerArrayAdapter<Workitem, WorkItemAdap
         holder.textTitle.setText(item.getId() + ": " + item.getTitle());
 
         if (showOwnerName) {
-            holder.textOwner.setText(item.getOwnedBy());
+            holder.textOwner.setText("Owner: " + item.getOwnedBy());
         } else {
-            holder.textOwner.setText("");
+            holder.textOwner.setText("Owner: Unknown");
         }
 
         //TODO 为workitem添加其他字段。
-        holder.textDescription.setText(Html.fromHtml(item.getDescription()));
+        String des = item.getDescription();
+        if (des.isEmpty()) {
+            holder.textDescription.setText("Description: No description");
+        } else {
+            holder.textDescription.setText("Description: " + Html.fromHtml(des));
+        }
     }
 
     @Override

@@ -38,7 +38,7 @@
     <string name="workitem_title">Workitem Title</string>
     <string name="workitem_list_refresh_error">Refresh Workitem List failed.</string>
     <string name="no_workitems">No workitems</string>
-    <string name="workitem_list_title">Workitems For </string>
+    <string name="workitem_list_title"/>
     <string name="workitem_filter">Workitem Filter</string>
     <string name="workitem_sort">Sort</string>
     <string name="dialog_ok_button">OK</string>
