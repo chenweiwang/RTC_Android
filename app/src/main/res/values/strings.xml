@@ -30,13 +30,15 @@
     <string name="title_activity_test">Sign in</string>
     <string name="error_server_error">Unexpected server error, please try again</string>
     <string name="error_login_network">Can not connect to Server</string>
+    <string name="login_advanced">Advanced</string>
+    <string name="login_advanced_close">Close</string>
 
 
     <!-- Workitem list fragment -->
     <string name="workitem_title">Workitem Title</string>
     <string name="workitem_list_refresh_error">Refresh Workitem List failed.</string>
     <string name="no_workitems">No workitems</string>
-    <string name="workitem_list_title">Workitems For </string>
+    <string name="workitem_list_title"/>
     <string name="workitem_filter">Workitem Filter</string>
     <string name="workitem_sort">Sort</string>
     <string name="dialog_ok_button">OK</string>
@@ -62,7 +64,7 @@
     <string name="workitem_ownedBy">Owned By: </string>
     <string name="workitem_createdBy">Created By: </string>
     <string name="workitem_createdTime">Created Time: </string>
-    <string name="workitem_plannedFor">Planed For: </string>
+    <string name="workitem_plannedFor">Planned For: </string>
     <string name="workitem_foundIn">Found In: </string>
     <string name="workitem_estimate">Estimate Time: </string>
     <string name="workitem_timeSpent">Time Spent: </string>
@@ -81,6 +83,8 @@
     <string name="commit_comment">Commit</string>
     <string name="cancel_comment">Cancel</string>
     <string name="comment_list_refresh_error">Refresh Comment List Failed.</string>
-    <string name="login_advanced">Advanced</string>
-    <string name="login_advanced_close">Close</string>
+    <string name="add_new_comment_error">Add the new Comment Failed.</string>
+    <string name="add_new_comment_success">New Comment successfully added.</string>
+    <string name="add_comment_progress_dialog_title">Adding new comment</string>
+    <string name="please_wait">Please wait...</string>
 </resources>
