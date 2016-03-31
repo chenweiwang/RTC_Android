@@ -13,8 +13,9 @@ import android.widget.TextView;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.ibm.rtc.rtc.R;
+import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.adapter.AttributeItemViewListBuilder;
-import com.ibm.rtc.rtc.core.UrlManager;
+import com.ibm.rtc.rtc.core.UrlBuilder;
 import com.ibm.rtc.rtc.core.WorkitemRequest;
 import com.ibm.rtc.rtc.model.Workitem;
 import com.ibm.rtc.rtc.ui.base.TitleProvider;
@@ -34,8 +35,9 @@ public class WorkitemDetailFragment extends WorkitembaseFragment implements Titl
     private Workitem workitem;
     private int count = 5;
 
-    public static WorkitemDetailFragment newInstance(int id) {
+    public static WorkitemDetailFragment newInstance(Account account, int id) {
         Bundle bundle = new Bundle();
+        bundle.putParcelable(ACCOUNT, account);
         bundle.putInt(WORKITEM_ID, id);
         WorkitemDetailFragment detailFragment = new WorkitemDetailFragment();
         detailFragment.setArguments(bundle);
@@ -67,8 +69,8 @@ public class WorkitemDetailFragment extends WorkitembaseFragment implements Titl
     }
 
     private void executeRequest() {
-        UrlManager urlManager = UrlManager.getInstance(getActivity());
-        final String workitemUrl = urlManager.getWorkitemUrl(getWorkitemId());
+        final String workitemUrl = new UrlBuilder().withAccount(getAccount())
+                .withWorkitemId(getWorkitemId()).buildWorkitemQueryUrl();
         WorkitemRequest workitemRequest = new WorkitemRequest(workitemUrl, new Response.Listener<Workitem>() {
             @Override
             public void onResponse(Workitem item) {

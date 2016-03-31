@@ -9,6 +9,7 @@ import com.ibm.rtc.rtc.model.Workitem;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.octicons_typeface_library.Octicons;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +22,7 @@ public class AttributeItemViewListBuilder {
     private final Context context;
     private final ViewGroup parent;
     private List<View> viewList;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
     public AttributeItemViewListBuilder(Context context, Workitem workitem, ViewGroup parent) {
         this.context = context;
@@ -120,7 +122,7 @@ public class AttributeItemViewListBuilder {
         }
         viewList.add(
                 new AttributeItem(GoogleMaterial.Icon.gmd_access_time, context.getString(R.string.workitem_createdTime)
-                        + " " + workitem.getCreatedTime().toString(), listener).getView(context, parent));
+                        + " " + formateDate(workitem.getCreatedTime()), listener).getView(context, parent));
         return this;
     }
 
@@ -131,7 +133,7 @@ public class AttributeItemViewListBuilder {
         }
         viewList.add(
                 new AttributeItem(GoogleMaterial.Icon.gmd_create, context.getString(R.string.workitem_modifiedTime)
-                        + " " + workitem.getLastModifiedTime().toString(), listener).getView(context, parent));
+                        + " " + formateDate(workitem.getLastModifiedTime()), listener).getView(context, parent));
         return this;
     }
 
@@ -142,7 +144,7 @@ public class AttributeItemViewListBuilder {
         }
         viewList.add(
                 new AttributeItem(GoogleMaterial.Icon.gmd_access_alarm, context.getString(R.string.workitem_dueDate)
-                        + " " + workitem.getDueDate().toString(), listener).getView(context, parent));
+                        + " " + formateDate(workitem.getDueDate()), listener).getView(context, parent));
         return this;
     }
 
@@ -206,6 +208,46 @@ public class AttributeItemViewListBuilder {
     }
 
     private String toTimePeriod(long time) {
-        return new Date(time).toString();
+        StringBuilder builder = new StringBuilder();
+        //to seconds.
+        time /= 1000;
+        if (time < 60) {
+            return "0";
+        }
+        long day = time / 72000;
+        time %= 72000;
+        long hour = time / 3600;
+        time %= 3600;
+        long minute = time / 60;
+
+
+        if (day > 0) {
+            builder.append(day).append(" Day");
+            if (day > 1) {
+                builder.append("s");
+            }
+        }
+        if (hour > 0) {
+            if (day > 0)
+                builder.append(", ");
+            builder.append(hour).append(" Hour");
+            if (hour > 1) {
+                builder.append("s");
+            }
+        }
+        if (minute > 0) {
+            if (day > 0 || hour > 0)
+                builder.append(", ");
+            builder.append(minute).append(" Minute");
+            if (minute > 1) {
+                builder.append("s");
+            }
+        }
+
+        return builder.toString();
+    }
+
+    private String formateDate(Date date) {
+        return dateFormat.format(date);
     }
 }

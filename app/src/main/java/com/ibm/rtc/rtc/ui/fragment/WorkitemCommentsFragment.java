@@ -1,6 +1,5 @@
 package com.ibm.rtc.rtc.ui.fragment;
 
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -13,26 +12,27 @@ import android.widget.EditText;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.ibm.rtc.rtc.R;
+import com.ibm.rtc.rtc.account.Account;
 import com.ibm.rtc.rtc.adapter.CommentAdapter;
 import com.ibm.rtc.rtc.core.CommentsRequest;
-import com.ibm.rtc.rtc.core.ProjectsRequest;
-import com.ibm.rtc.rtc.core.UrlManager;
+import com.ibm.rtc.rtc.core.UrlBuilder;
 import com.ibm.rtc.rtc.core.VolleyQueue;
-import com.ibm.rtc.rtc.core.WorkitemRequest;
 import com.ibm.rtc.rtc.model.Comment;
-import com.ibm.rtc.rtc.model.Project;
-import com.ibm.rtc.rtc.model.Workitem;
+import com.ibm.rtc.rtc.ui.base.LoadingListFragment;
 import com.ibm.rtc.rtc.ui.base.TitleProvider;
 import com.mikepenz.iconics.typeface.IIcon;
 import com.mikepenz.octicons_typeface_library.Octicons;
-import com.ibm.rtc.rtc.ui.base.LoadingListFragment;
 
-import java.util.ArrayList;
-import java.util.Date;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.List;
 
 /**
@@ -41,14 +41,18 @@ import java.util.List;
 public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter> implements TitleProvider {
     private static final String TAG = "CommentsFragment";
     private static final String WORKITEM_ID = "WORKITEM_ID";
+    private static final String ACCOUNT = "Account";
 
     private RequestQueue mRequestQueue;
+    private Account mAccount;
     private final int DEFAULT_STATUS_CODE = 500;
 
-    private FloatingActionButton addCommentBtn;
-    private EditText commentEditText;
+    private FloatingActionButton mAddCommentBtn;
+    private EditText mCommentEditText;
+    private boolean mIsPostingComment = false;
+    private MaterialDialog mPostCommentProgress;
 
-    private int workitemId;
+    private int mWorkitemId;
 
     // 展示添加评论的临时变量
     private List<Comment> temp;
@@ -57,10 +61,16 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        workitemId = getArguments().getInt(WORKITEM_ID);
-        addCommentBtn = new FloatingActionButton(getContext());
-        addCommentBtn.findViewById(R.id.addComment);
-        addCommentBtn.show();
+        mWorkitemId = getArguments().getInt(WORKITEM_ID);
+        mAccount = (Account) getArguments().get(ACCOUNT);
+        mAddCommentBtn = new FloatingActionButton(getContext());
+        mAddCommentBtn.findViewById(R.id.addComment);
+        mAddCommentBtn.show();
+        mPostCommentProgress = new MaterialDialog.Builder(getContext())
+                                        .title(R.string.add_comment_progress_dialog_title)
+                                        .content(R.string.please_wait)
+                                        .progress(true, 0)
+                                        .build();
         mRequestQueue = VolleyQueue.getInstance(getActivity()).getRequestQueue();
     }
 
@@ -74,12 +84,12 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        addCommentBtn = (FloatingActionButton)view.findViewById(R.id.addComment);
-        addCommentBtn.setOnClickListener(new View.OnClickListener() {
+        mAddCommentBtn = (FloatingActionButton)view.findViewById(R.id.addComment);
+        mAddCommentBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 View view = LayoutInflater.from(getContext()).inflate(R.layout.edit_comment_dialog, null);
-                commentEditText = (EditText) view.findViewById(R.id.editComment);
+                mCommentEditText = (EditText) view.findViewById(R.id.editComment);
                 new MaterialDialog.Builder(getActivity())
                         .title("Add Your Comment")
                         .customView(view, false)
@@ -87,13 +97,13 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
                         .onPositive(new MaterialDialog.SingleButtonCallback() {
                             @Override
                             public void onClick(MaterialDialog dialog, DialogAction which) {
-                                String comment = commentEditText.getText().toString();
-                                // TODO: 2016/1/13  将结果写回服务器
-                                // TODO: 2016/1/14 delete this line
-                                hideEmpty();
-                                Comment test3 = new Comment("new creator", new Date(), comment);
-                                temp.add(0, test3);
-                                setUpList(temp);
+                                if (!mIsPostingComment) {
+                                    mIsPostingComment = true;
+                                    mPostCommentProgress.show();
+                                    String comment = mCommentEditText.getText().toString();
+                                    postNewCommand(comment);
+                                    dialog.dismiss();
+                                }
                             }
                         })
                         .negativeText(R.string.cancel_comment)
@@ -109,12 +119,65 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
         setAdapter(adapter);
     }
 
+    private void postNewCommand(String comment) {
+        final String SUCCESS_ATTR = "success";
+        final String MESSAGE_ATTR = "message";
+        final String commentsUrl = new UrlBuilder().withAccount(mAccount).withWorkitemId(mWorkitemId)
+                .buildCommentsUrl();
+        JSONObject body = new JSONObject();
+        try {
+            body.put("dc:description", comment);
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+            throw new RuntimeException("Can't build comment request body!");
+        }
+
+        JsonObjectRequest addCommentRequest = new JsonObjectRequest(Request.Method.POST, commentsUrl,
+                body, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    mIsPostingComment = false;
+                    mPostCommentProgress.dismiss();
+                    if (response.getBoolean(SUCCESS_ATTR)) {
+                        if (getView() != null)
+                            Snackbar.make(getView(), getText(R.string.add_new_comment_success), Snackbar.LENGTH_SHORT).show();
+                        executeRequest();
+                    } else {
+                        final String errorMsg = response.getString(MESSAGE_ATTR);
+                        if (getView() != null)
+                            Snackbar.make(getView(),
+                                    getText(R.string.add_new_comment_error) + " " + errorMsg, Snackbar.LENGTH_SHORT).show();
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, e.toString());
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                mIsPostingComment = false;
+                mPostCommentProgress.dismiss();
+                Log.d(TAG, "post new comment failed: " + volleyError.getMessage());
+                if (getView() != null)
+                    Snackbar.make(getView(), getText(R.string.add_new_comment_error), Snackbar.LENGTH_SHORT).show();
+            }
+        });
+
+        addCommentRequest.setTag(TAG);
+        addCommentRequest.setRetryPolicy(new DefaultRetryPolicy(
+                0,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        mRequestQueue.add(addCommentRequest);
+    }
+
     @Override
     protected void executeRequest() {
         super.executeRequest();
         // TODO: 2016/1/12 add get comment
-        UrlManager urlManager = UrlManager.getInstance(getActivity());
-        String commentsUrl = urlManager.getRootUrl() + "comments/" + workitemId;
+        final String commentsUrl = new UrlBuilder().withAccount(mAccount).withWorkitemId(mWorkitemId)
+                .buildCommentsUrl();
         CommentsRequest commentsRequest = new CommentsRequest(commentsUrl,
             new Response.Listener<List<Comment>>() {
                 @Override
@@ -162,8 +225,9 @@ public class WorkitemCommentsFragment extends LoadingListFragment<CommentAdapter
         super.onStop();
         mRequestQueue.cancelAll(TAG);
     }
-    public static WorkitemCommentsFragment newInstance(int id) {
+    public static WorkitemCommentsFragment newInstance(Account account, int id) {
         Bundle bundle = new Bundle();
+        bundle.putParcelable(ACCOUNT, account);
         bundle.putInt(WORKITEM_ID, id);
 
         WorkitemCommentsFragment commentsFragment = new WorkitemCommentsFragment();

@@ -11,19 +11,23 @@ import android.widget.TextView;
 
 import com.ibm.rtc.rtc.R;
 import com.ibm.rtc.rtc.model.Workitem;
-import com.ibm.rtc.rtc.ui.WorkitemActivity;
 
 /**
  * Created by Jack on 2015/12/17.
  */
-public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdapter.ViewHolder> {
+public class WorkItemAdapter extends RecyclerArrayAdapter<Workitem, WorkItemAdapter.ViewHolder> {
 
     private boolean showOwnerName = true;
     private final Resources resources;
+    private WorkitemSelectedListener listener;
 
-    public WorkitemAdapter(Context context, LayoutInflater inflater) {
+    public WorkItemAdapter(Context context, LayoutInflater inflater) {
         super(inflater);
         resources = context.getResources();
+    }
+
+    public void setWorkitemSelectedListener(WorkitemSelectedListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -31,13 +35,18 @@ public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdap
         holder.textTitle.setText(item.getId() + ": " + item.getTitle());
 
         if (showOwnerName) {
-            holder.textOwner.setText(item.getOwnedBy());
+            holder.textOwner.setText("Owner: " + item.getOwnedBy());
         } else {
-            holder.textOwner.setText("");
+            holder.textOwner.setText("Owner: Unknown");
         }
 
         //TODO 为workitem添加其他字段。
-        holder.textDescription.setText(Html.fromHtml(item.getDescription()));
+        String des = item.getDescription();
+        if (des.isEmpty()) {
+            holder.textDescription.setText("Description: No description");
+        } else {
+            holder.textDescription.setText("Description: " + Html.fromHtml(des));
+        }
     }
 
     @Override
@@ -61,13 +70,15 @@ public class WorkitemAdapter extends RecyclerArrayAdapter<Workitem, WorkitemAdap
                 @Override
                 public void onClick(View v) {
                     Workitem workitem = getItem(getAdapterPosition());
-                    if (workitem != null) {
-                        v.getContext().startActivity(
-                                WorkitemActivity.createLauncherIntent(v.getContext(), workitem.getId(),
-                                        workitem.getTitle()));
+                    if (workitem != null && listener != null) {
+                        listener.onWorkitemSelected(workitem);
                     }
                 }
             });
         }
+    }
+
+    public interface WorkitemSelectedListener {
+        public void onWorkitemSelected(Workitem workitem);
     }
 }

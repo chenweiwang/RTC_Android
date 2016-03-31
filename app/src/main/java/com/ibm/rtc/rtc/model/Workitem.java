@@ -71,9 +71,16 @@ public class Workitem /* implements Parcelable*/ {
         workitem.setTypeIndentifier(WorkitemType.getType(
                 object.getJSONObject("type").getString("identifier")));
         workitem.setFoundIn(object.getJSONObject("foundIn").getString("title"));
+
         workitem.setBusinessValue(object.getJSONObject("businessValue").getString("title"));
+        if (workitem.getBusinessValue().equals("null"))
+            workitem.setBusinessValue(null);
         workitem.setRisk(object.getJSONObject("risk").getString("title"));
+        if (workitem.getRisk().equals("null"))
+            workitem.setRisk(null);
         workitem.setStoryPoint(object.getJSONObject("storyPoint").getString("title"));
+        if (workitem.getStoryPoint().equals("null"))
+            workitem.setStoryPoint(null);
 
         if (!object.getString("estimate").equals("null")) {
             workitem.setEstimate(Long.parseLong(object.getString("estimate")));
@@ -297,65 +304,5 @@ public class Workitem /* implements Parcelable*/ {
     public void setImpact(String impact) {
         this.impact = impact;
     }
-
- /*   @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(projectUuid);
-        dest.writeInt(id);
-        dest.writeString(description);
-        dest.writeString(type);
-        dest.writeString(filedAgainst);
-        dest.writeString(ownedBy);
-        dest.writeString(createdBy);
-        dest.writeLong(createdTime == null ? -1 : createdTime.getTime());
-        dest.writeLong(lastModifiedTime == null ? -1 : lastModifiedTime.getTime());
-        dest.writeLong(dueDate == null ? -1 : dueDate.getTime());
-        dest.writeString(title);
-        dest.writeString(priority);
-        dest.writeString(severity);
-        dest.writeString(commentsUrl);
-        dest.writeString(subscribersUrl);
-        dest.writeString(plannedFor);
-    }
-
-    public static final Parcelable.Creator<Workitem> CREATOR = new Parcelable.Creator<Workitem>() {
-
-        @Override
-        public Workitem createFromParcel(Parcel source) {
-            return new Workitem(source);
-        }
-
-        @Override
-        public Workitem[] newArray(int size) {
-            return new Workitem[size];
-        }
-    };
-
-    private Workitem(Parcel in) {
-        projectUuid = in.readString();
-        id = in.readInt();
-        description = in.readString();
-        type = in.readString();
-        filedAgainst = in.readString();
-        ownedBy = in.readString();
-        createdBy = in.readString();
-
-        Long peek;
-        createdTime = (peek = in.readLong()) >= 0 ? new Date(peek) : null;
-        lastModifiedTime = (peek = in.readLong()) >= 0 ? new Date(peek) : null;
-        dueDate = (peek = in.readLong()) >= 0 ? new Date(peek) : null;
-
-        title = in.readString();
-        priority = in.readString();
-        severity = in.readString();
-        commentsUrl = in.readString();
-        subscribersUrl = in.readString();
-        plannedFor = in.readString();
-    }*/
 
 }
